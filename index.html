@@ -1,0 +1,2095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PortGuard — by DronePort Rotterdam</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  :root {
+    --bg: #060d1e;
+    --bg-2: #0a1530;
+    --bg-elev: #0e1a38;
+    --bg-card: #0d1838;
+    --line: #1a2a52;
+    --line-bright: #243a6b;
+    --ink: #ffffff;
+    --ink-dim: #94a3c4;
+    --ink-faint: #5a6788;
+    --brand: #3b82f6;
+    --brand-2: #38bdf8;
+    --port: #003DA5;
+    --port-light: #3b82f6;
+    --douane: #0EA5E9;
+    --politie: #F97316;
+    --governor: #a78bfa;
+  }
+  * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', system-ui, sans-serif;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(to right, rgba(59,130,246,0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(59,130,246,0.05) 1px, transparent 1px);
+    background-size: 64px 64px;
+    pointer-events: none;
+    z-index: 0;
+  }
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse 90% 50% at 50% -10%, rgba(56,189,248,0.12), transparent 60%),
+      radial-gradient(ellipse 60% 40% at 0% 100%, rgba(59,130,246,0.08), transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+  .wordmark-port { color: #ffffff; }
+  .wordmark-g {
+    background: linear-gradient(180deg, #5eead4 0%, #22d3ee 40%, #0ea5e9 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .wordmark-uard {
+    background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 60%, #1e3a8a 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .wordmark {
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  .pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 14px;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    background: rgba(14, 26, 56, 0.6);
+    border-radius: 999px;
+    font-size: 12px;
+    color: #7dd3fc;
+    backdrop-filter: blur(8px);
+  }
+  .pill-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #38bdf8;
+    box-shadow: 0 0 8px #38bdf8;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .persona-card {
+    position: relative;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 28px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+  .persona-card::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: var(--persona-glow);
+    opacity: 0.6;
+    pointer-events: none;
+  }
+  .persona-card > * { position: relative; z-index: 1; }
+  .persona-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--persona-color);
+    box-shadow: 0 20px 50px -20px var(--persona-shadow);
+  }
+
+  .persona-port {
+    --persona-color: #003DA5;
+    --persona-glow: radial-gradient(ellipse at top left, rgba(0,61,165,0.25), transparent 60%);
+    --persona-shadow: rgba(0,61,165,0.5);
+  }
+  .persona-douane {
+    --persona-color: #0EA5E9;
+    --persona-glow: radial-gradient(ellipse at top left, rgba(14,165,233,0.2), transparent 60%);
+    --persona-shadow: rgba(14,165,233,0.4);
+  }
+  .persona-politie {
+    --persona-color: #F97316;
+    --persona-glow: radial-gradient(ellipse at top left, rgba(249,115,22,0.2), transparent 60%);
+    --persona-shadow: rgba(249,115,22,0.4);
+  }
+  .persona-governor {
+    --persona-color: #a78bfa;
+    --persona-glow: radial-gradient(ellipse at top left, rgba(167,139,250,0.2), transparent 60%);
+    --persona-shadow: rgba(167,139,250,0.4);
+  }
+
+  .badge-role {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+  .badge-provider { background: rgba(0,61,165,0.2); color: #93c5fd; border: 1px solid rgba(0,61,165,0.4); }
+  .badge-consumer-douane { background: rgba(14,165,233,0.15); color: #7dd3fc; border: 1px solid rgba(14,165,233,0.4); }
+  .badge-consumer-politie { background: rgba(249,115,22,0.15); color: #fdba74; border: 1px solid rgba(249,115,22,0.4); }
+  .badge-governor { background: rgba(167,139,250,0.15); color: #c4b5fd; border: 1px solid rgba(167,139,250,0.4); }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    font-weight: 600;
+    border: 1px solid #3b82f6;
+    box-shadow: 0 8px 24px -8px rgba(59,130,246,0.5);
+    transition: all 0.2s ease;
+  }
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 28px -8px rgba(59,130,246,0.7);
+  }
+  .btn-ghost {
+    background: rgba(14,26,56,0.5);
+    border: 1px solid var(--line-bright);
+    color: var(--ink-dim);
+    transition: all 0.2s ease;
+  }
+  .btn-ghost:hover { color: var(--ink); border-color: var(--brand); }
+
+  .arch-card {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+  .arch-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0;
+    transition: opacity 0.35s ease;
+  }
+  .arch-card:hover::before, .arch-card.expanded::before { opacity: 0.7; }
+  .arch-card:hover, .arch-card.expanded {
+    border-color: var(--accent, var(--line-bright));
+    transform: translateY(-2px);
+    box-shadow: 0 24px 50px -24px var(--accent-glow);
+  }
+
+  .node {
+    background: rgba(20, 40, 80, 0.4);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    transition: all 0.25s ease;
+  }
+  .node:hover {
+    border-color: var(--accent);
+    background: rgba(20, 40, 80, 0.7);
+  }
+
+  .video-frame {
+    background: #000;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+  }
+  .video-frame video { display: block; width: 100%; height: 100%; }
+  .video-corner {
+    position: absolute;
+    width: 14px; height: 14px;
+    border: 1.5px solid #38bdf8;
+    pointer-events: none;
+  }
+  .video-corner.tl { top: 10px; left: 10px; border-right: 0; border-bottom: 0; }
+  .video-corner.tr { top: 10px; right: 10px; border-left: 0; border-bottom: 0; }
+  .video-corner.bl { bottom: 10px; left: 10px; border-right: 0; border-top: 0; }
+  .video-corner.br { bottom: 10px; right: 10px; border-left: 0; border-top: 0; }
+  .rec-badge {
+    position: absolute; top: 14px; left: 32px;
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(8px);
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: #fff;
+  }
+  .rec-badge::before {
+    content: '';
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #ef4444;
+    animation: pulse 1.5s infinite;
+  }
+
+  .reveal { opacity: 0; transform: translateY(12px); animation: reveal 0.6s cubic-bezier(.2,.7,.2,1) forwards; }
+  @keyframes reveal { to { opacity: 1; transform: none; } }
+
+  .flow-line { stroke-dasharray: 5 5; animation: dash 25s linear infinite; }
+  @keyframes dash { to { stroke-dashoffset: -200; } }
+
+  .scrollbar-thin::-webkit-scrollbar { height: 6px; width: 6px; }
+  .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+  .scrollbar-thin::-webkit-scrollbar-thumb { background: var(--line-bright); border-radius: 3px; }
+
+  .logo-pg {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, #3b82f6, #1e40af);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800;
+    font-size: 13px;
+    letter-spacing: -0.02em;
+    color: white;
+    box-shadow: 0 4px 12px rgba(59,130,246,0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+  }
+
+  .mode-btn {
+    transition: all 0.25s ease;
+    position: relative;
+  }
+  .mode-btn.active {
+    background: linear-gradient(135deg, rgba(59,130,246,0.2), rgba(56,189,248,0.1));
+    border-color: var(--brand-2);
+    color: white;
+  }
+  .mode-btn.active .mode-dot {
+    background: var(--brand-2);
+    box-shadow: 0 0 12px var(--brand-2);
+  }
+
+  /* Pull quote */
+  .pull-quote {
+    border-left: 3px solid var(--brand-2);
+    padding: 16px 20px;
+    background: linear-gradient(90deg, rgba(56,189,248,0.06), transparent);
+    font-size: 1.05rem;
+    font-style: italic;
+    color: #cbd5e1;
+  }
+
+  /* Matrix table */
+  .matrix {
+    border-collapse: collapse;
+    width: 100%;
+  }
+  .matrix th, .matrix td {
+    border: 1px solid var(--line);
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 13px;
+  }
+  .matrix th {
+    background: var(--bg-elev);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-dim);
+    font-weight: 600;
+  }
+  .matrix td.check { color: #6ee7b7; text-align: center; }
+  .matrix td.cross { color: #fca5a5; text-align: center; }
+  .matrix td.tool { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #7dd3fc; }
+
+  /* Capability card (for promo highlights) */
+  .cap-card {
+    background: linear-gradient(180deg, var(--bg-card), rgba(13,24,56,0.5));
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+  .cap-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--cap-color, var(--brand));
+    box-shadow: 0 16px 40px -16px var(--cap-shadow, rgba(59,130,246,0.4));
+  }
+  .cap-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--cap-color, var(--brand));
+    letter-spacing: 0.15em;
+  }
+
+  /* Persona tab buttons (Same map. Three truths.) */
+  .persona-tab {
+    position: relative;
+    padding: 12px 0;
+    margin-right: 32px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    transition: color 0.2s ease;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+  }
+  .persona-tab.active { color: white; }
+  .persona-tab::after {
+    content: '';
+    position: absolute; left: 0; right: 0; bottom: -1px;
+    height: 2px;
+    background: var(--tab-color, #38bdf8);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s cubic-bezier(.2,.7,.2,1);
+  }
+  .persona-tab.active::after { transform: scaleX(1); }
+
+  /* Granted / Denied panels */
+  .panel-granted {
+    border: 1px solid var(--panel-color, #38bdf8);
+    background: linear-gradient(135deg, var(--bg-card), color-mix(in srgb, var(--panel-color, #38bdf8) 8%, transparent));
+    border-radius: 12px;
+    padding: 28px;
+  }
+  .panel-denied {
+    border: 1px solid var(--line);
+    background: rgba(13, 24, 56, 0.3);
+    border-radius: 12px;
+    padding: 28px;
+  }
+  .denied-item {
+    text-decoration: line-through;
+    text-decoration-color: var(--ink-faint);
+    color: var(--ink-faint);
+  }
+
+  /* Step pills for the lifecycle */
+  .step-card {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 18px 22px;
+    min-width: 170px;
+    transition: all 0.25s ease;
+    position: relative;
+  }
+  .step-card:hover {
+    border-color: var(--step-color, var(--brand-2));
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px -10px color-mix(in srgb, var(--step-color, var(--brand-2)) 40%, transparent);
+  }
+  .step-arrow {
+    display: flex;
+    align-items: center;
+    color: var(--brand-2);
+    opacity: 0.5;
+  }
+
+  /* AI vendor chip */
+  .vendor-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--chip-color, var(--line-bright));
+    background: color-mix(in srgb, var(--chip-color, var(--brand)) 10%, transparent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--chip-color, white);
+    transition: all 0.2s ease;
+  }
+  .vendor-chip:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px -6px color-mix(in srgb, var(--chip-color, var(--brand)) 40%, transparent);
+  }
+  .vendor-chip-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--chip-color, var(--brand));
+    box-shadow: 0 0 8px var(--chip-color, var(--brand));
+  }
+</style>
+</head>
+<body>
+<div id="root" class="relative z-10"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef, createContext, useContext } = React;
+
+// =============== I18N ===============
+const I18N = {
+  en: {
+    'app.tagline': 'by DronePort Rotterdam',
+    'nav.demo': 'Demo',
+    'nav.capabilities': 'Capabilities',
+    'nav.personas': 'Personas',
+    'nav.truths': 'Three truths',
+    'nav.identity': 'Identity',
+    'nav.lifecycle': 'Lifecycle',
+    'nav.architecture': 'Architecture',
+    'nav.ai': 'AI agnostic',
+    'nav.usecases': 'Use cases',
+    'nav.roles': 'Roles',
+    'nav.value': 'Value',
+    'mode.title': 'Choose how you want to present',
+    'mode.subtitle': 'This page replaces the PowerPoint — pick a mode for your audience and time.',
+    'mode.promo': 'Promo',
+    'mode.promo.desc': '1.5–2 min highlight reel. Five key capabilities. For executive audiences.',
+    'mode.promo.duration': '~ 2 min',
+    'mode.demo': 'Full demo',
+    'mode.demo.desc': 'Complete walkthrough — three videos, architecture, identity, all use cases.',
+    'mode.demo.duration': '~ 15 min',
+    'mode.quick': 'Quick demo',
+    'mode.quick.desc': 'Condensed version: hero, personas, one video, the architecture in 2 layers.',
+    'mode.quick.duration': '~ 5 min',
+    'hero.pill': 'Live · 3 InnoTractor Connectors · Digidentity-verified',
+    'hero.subtitle': 'Situational awareness powered by InnoTractor connectors and Digidentity. Select your organisation.',
+    'hero.principle': 'The data never moves. The access right does.',
+    'hero.governor.label': 'Ecosystem governor',
+    'hero.governor.note': 'DronePort Rotterdam governs the ecosystem — but never accesses participant data.',
+    'partners.footer': 'Access governed by Digidentity policies via InnoTractor connectors. Data & AI by Avanade.',
+    'personas.role.provider': 'PROVIDER',
+    'personas.role.consumer': 'CONSUMER',
+    'personas.role.governor': 'GOVERNOR',
+    'personas.havenbedrijf.desc': 'Primary data provider. 8 SecurityCamera records live today. Port-wide incidents. Full catalogue view.',
+    'personas.douane.desc': 'Customs — own AUS craft (UAV / USV / UGV). Views Havenbedrijf cameras via shared dataspace policy.',
+    'personas.politie.desc': 'Port Police — own UAV fleet and officer body cams. Live body cam stream sharing in real time via the connector.',
+    'personas.governor.desc': 'Ecosystem governor — sets technical, legal, and data-model standards. Does not access participant data.',
+    'personas.enter': 'Enter platform',
+    'personas.caps.havenbedrijf': ['8 SecurityCameras (live)', 'Port-wide Incidents', 'Full catalogue view'],
+    'personas.caps.douane': ['CustomsAUS (UAV/USV/UGV)', 'Shared camera access', 'Inspection zone tracking'],
+    'personas.caps.politie': ['Police UAV fleet', 'Body camera live stream', 'Shared camera access'],
+    'personas.caps.governor': ['Technical standards', 'Legal agreements', 'Canonical role list'],
+
+    'capabilities.title': 'Five key capabilities',
+    'capabilities.subtitle': 'These are the five things to show in any audience-facing demo. Each maps to a specific moment in the live application.',
+    'cap.1.title': 'Access for Port, Customs, Police',
+    'cap.1.desc': 'Three personas, three independent connectors. Each organisation sees only what its policies permit — enforced at the connector, not in the UI.',
+    'cap.2.title': 'Participants in the PortGuard space',
+    'cap.2.desc': 'Havenbedrijf Rotterdam, Douane, Zeehavenpolitie. DronePort Rotterdam as ecosystem governor — neutral, never operational.',
+    'cap.3.title': 'Policy: Customs views PoR cameras',
+    'cap.3.desc': 'Douane has no cameras of its own. A dataspace policy grants read access to Havenbedrijf\'s 8 live cameras. Revoke the policy → access disappears.',
+    'cap.4.title': 'Drone cameras available for PoR',
+    'cap.4.desc': 'Police drones and Customs AUS craft expose feeds back to the Port Authority for situational awareness — under their own contracts.',
+    'cap.5.title': 'PoR access to Police body cam',
+    'cap.5.desc': 'Officer taps Start Sharing → stream appears for Havenbedrijf within 5 seconds. Tap Stop → it vanishes from every viewer. Real connector writes.',
+
+    'demo.title': 'See it move.',
+    'demo.subtitle': 'Three captures from the live prototype. Pick a clip; the player loads it.',
+    'demo.recording': 'REC',
+    'demo.now': 'NOW PLAYING',
+    'demo.connector': 'CONNECTOR',
+
+    'personas.section.title': 'Three organisations. One ecosystem.',
+    'personas.section.subtitle': 'Each persona is a real connector with a real endpoint. The governor sits outside the data flow.',
+
+    'identity.title': 'Identity & Access',
+    'identity.subtitle': 'Two questions, two answers. PortGuard separates authentication from authorisation by design.',
+    'identity.who.title': 'Who are you?',
+    'identity.who.answer': 'Answered by Digidentity.',
+    'identity.who.desc': 'Digidentity is the identity provider for PortGuard. It supports DigiD (Dutch citizens), eHerkenning (Dutch businesses), and eIDAS (cross-border European identity). When a Connector presents itself, it attaches a Digidentity-verified certificate. No party needs to trust another\'s self-declaration.',
+    'identity.what.title': 'What may you do?',
+    'identity.what.answer': 'Answered by each Connector.',
+    'identity.what.desc': 'Once identity is established, each Connector independently decides what the presenting party may do. Role-based policies are set by the data owner — not by Digidentity, not by DronePort. DronePort\'s governance framework defines which roles are canonical; individual organisations map their internal roles to those definitions.',
+    'identity.note.label': 'Note',
+    'identity.note.text': 'Digidentity onboarding is part of the PortGuard project. The final decision on which standard applies per organisation is still a business decision. DigiD is used as the illustrative example for now.',
+    'identity.wallet.title': 'The path to wallet-based identities',
+    'identity.wallet.desc': 'The current Verifiable Credential model is forward-compatible with wallet-based identity. The ambition is to migrate toward EU Digital Identity Wallets (eIDAS 2.0) — each organisation and authorised machine holds its own portable, self-sovereign credential wallet.',
+    'identity.machines.title': 'Machine identities — not just people',
+    'identity.machines.desc': 'Camera systems, drones, AI agents, and automated services all have identities and access rights in this architecture. The Connector and policy model applies identically whether the requester is a customs inspector or an autonomous drone.',
+
+    'architecture.title': 'Built on InnoTractor, Digidentity, and Avanade.',
+    'architecture.subtitle': 'Click any layer to expand. The connector layer is where data sovereignty lives.',
+    'architecture.endpoints': 'Live connector endpoints',
+
+    'matrix.title': 'AI Tool Access Matrix',
+    'matrix.subtitle': 'The AI assistant is bound by the same governance as the Connector. It cannot call tools outside the persona\'s permitted scope — and explains why when asked.',
+    'matrix.tool': 'AI Tool',
+
+    'usecases.title': 'Three use cases.',
+    'usecases.subtitle': 'UC1 and UC2 are live today. UC3 is architected, ready for next phase.',
+    'usecases.live': 'LIVE TODAY',
+    'usecases.next': 'NEXT PHASE',
+    'uc1.title': 'UC1 — Governed Access',
+    'uc1.points': [
+      'Cross-org data access under machine-negotiated contracts',
+      'No shared passwords — Digidentity-verified identity',
+      'Persona switching shows three views of the same port',
+      'Incident declaration visible across all three orgs',
+      'AI assistant refuses out-of-scope queries and explains why',
+    ],
+    'uc2.title': 'UC2 — Governed Live Video',
+    'uc2.points': [
+      'Live body cam stream governed by dataspace policy',
+      'Stream appears within 5 seconds of the connector write',
+      'Colour-coded by owning organisation — ownership visible at a glance',
+      'Douane cannot see it — no contract, structurally absent',
+      'Stop Sharing removes the feed from all viewers instantly',
+      'Disaster Mode: time-limited emergency access, auto-expires',
+    ],
+    'uc3.title': 'UC3 — Governed Evidence Transfer',
+    'uc3.points': [
+      'Drone footage transferred between agencies with chain of custody',
+      'SHA-256 integrity hash proves file was not modified in transit',
+      'ODRL usage conditions travel with the file',
+      'Secondary transfer to prosecution also governed',
+      'Architecture for UC3 is already in place',
+    ],
+
+    'roles.title': 'Roles management — the canonical list',
+    'roles.subtitle': 'The hardest problem is not technical. "Inspector" in Douane does not mean the same as "Inspector" in Politie. Mapping is organisational and political.',
+    'roles.governor.title': 'DronePort governs',
+    'roles.governor.points': [
+      'Defines the canonical role list',
+      'Approves changes to the list',
+      'Owns the standardisation process',
+    ],
+    'roles.org.title': 'Each organisation maps',
+    'roles.org.points': [
+      'Maps its internal roles to canonical ones',
+      'Sets policies referencing canonical roles',
+      'Retains sovereignty over its own data',
+    ],
+    'roles.policy.title': 'Two checks, both must pass',
+    'roles.policy.points': [
+      'Usage policy: is this action allowed?',
+      'Role policy: does this role permit this action?',
+      'Both gates open → data flows. Otherwise → refused.',
+    ],
+
+    'value.title': 'Three operational scenarios.',
+    'value.subtitle': 'The same architecture pays off in incidents, audits, and ecosystem growth.',
+    'value.s1.title': 'Active security incident',
+    'value.s1.without': '45–90 min · phone calls · email exports · incident escalates during wait',
+    'value.s1.with': 'Declare Incident → all three maps within seconds · cameras & telemetry under existing policy · full audit log automatically',
+    'value.s2.title': 'GDPR / NIS2 audit',
+    'value.s2.without': 'Weeks of investigation · incomplete records · GDPR fines up to 4% of global turnover',
+    'value.s2.with': 'Connector log: identity, role, timestamp, policy reference per event · export in minutes · full compliance demonstrated',
+    'value.s3.title': 'New participant joins',
+    'value.s3.without': 'New legal agreements from scratch · weeks to months IT integration · opportunity may expire',
+    'value.s3.with': 'Connect Connector once · sign DronePort governance agreement · time to value: days, not months',
+    'value.without': 'WITHOUT DATASPACE',
+    'value.with': 'WITH PORTGUARD',
+
+    'status.title': 'Current status.',
+    'status.live.title': 'Live today',
+    'status.live': [
+      '3 live InnoTractor connector endpoints',
+      '8 SecurityCamera records — Havenbedrijf',
+      'Persona selector with connector-level policy',
+      'Mapbox map · 5-second polling · animated markers',
+      'Body cam Start/Stop Sharing — real connector writes',
+      'Scenarios panel — live writes with dataspace effect',
+      'AI assistant (Claude + Azure OpenAI) — policy-bound',
+      'Full EN / NL toggle',
+    ],
+    'status.pending.title': 'Pending InnoTractor model registration',
+    'status.pending': [
+      'BodyCamera model — 6 records ready',
+      'PoliceDrone model — 4 records ready',
+      'CustomsAUS model — 5 records ready',
+      'Incident cross-connector contracts',
+      'Once registered: markers auto-appear, no code change',
+    ],
+
+    'closing.title': 'That\'s the dataspace. That\'s PortGuard.',
+    'closing.text': 'Everything you\'ve seen — map updates, incident alerts, streams appearing and disappearing, AI answers — is driven by live connector writes to real InnoTractor connectors. No central database. No shared admin account. No phone calls between IT departments.',
+
+    'common.but': 'But',
+    'common.endpoint': 'endpoint',
+    'common.changemode': 'Change mode',
+
+    // Lifecycle
+    'lifecycle.title': 'The request travels.',
+    'lifecycle.subtitle': 'Seven steps from intent to grant. Authentication via Digidentity. Authorisation at each connector. Nothing decided in the UI.',
+    'lifecycle.steps': [
+      { label: 'Operator', sub: 'Officer · drone · agent' },
+      { label: 'Digidentity', sub: 'DigiD · eHerkenning · eIDAS' },
+      { label: 'Verifiable Credential', sub: 'Roles + claims signed' },
+      { label: 'Access Token', sub: 'Short-lived · scoped' },
+      { label: 'Connector', sub: 'InnoTractor DSP' },
+      { label: 'Policy Engine', sub: 'Usage + role checks' },
+      { label: 'Response', sub: 'Granted · auto-expires' },
+    ],
+    'lifecycle.traditional.label': 'TRADITIONAL',
+    'lifecycle.traditional.title': 'Shared DB → Apps → UI filters',
+    'lifecycle.traditional.note': 'Centralised store. Data leaves origin. GDPR exposure. Auditing fragmented.',
+    'lifecycle.portguard.label': 'PORTGUARD',
+    'lifecycle.portguard.title': 'Sovereign systems → Connectors → Contracts → UI',
+    'lifecycle.portguard.note': 'Per-connector audit. ODRL-enforced. Access auto-expires. Every exchange logged.',
+
+    // Three truths (granted/denied)
+    'truths.title': 'Same map. Three truths.',
+    'truths.subtitle': 'Switch role — see what each authority is contractually allowed to view. Denial is not hidden by the UI; the data is structurally absent from the connector response.',
+    'truths.granted': 'GRANTED BY CONTRACT',
+    'truths.denied': 'DENIED BY ODRL',
+    'truths.cansee': 'can see:',
+    'truths.excluded': 'Contractually excluded:',
+
+    'truths.port.sees': [
+      'All 8 SecurityCameras (live)',
+      'Port-wide Incidents',
+      'Full dataspace catalogue',
+      'Body cam streams shared by Politie',
+      'AUS craft positions shared by Douane',
+    ],
+    'truths.port.denied': [
+      'Customs declarations (full)',
+      'Police case files',
+      'Officer DIDs',
+    ],
+    'truths.douane.sees': [
+      'Havenbedrijf cameras via shared policy',
+      'Port-wide Incidents',
+      'Own CustomsAUS fleet (UAV/USV/UGV)',
+      'Inspection zone overlays',
+    ],
+    'truths.douane.denied': [
+      'Police body cameras',
+      'Police UAV mission planning',
+      'Internal port logistics',
+    ],
+    'truths.politie.sees': [
+      'Havenbedrijf cameras via shared policy',
+      'Port-wide Incidents',
+      'Own UAV fleet & body cams',
+      'Evidence chain of custody',
+    ],
+    'truths.politie.denied': [
+      'CustomsAUS missions',
+      'Customs declarations',
+      'Commercial container manifests',
+    ],
+
+    // AI Agnosticism
+    'ai.agnostic.title': 'AI is agnostic. Bring your own brain.',
+    'ai.agnostic.subtitle': 'The agentic AI layer is vendor-neutral by design. Same tool definitions, same persona context, same streaming format — swap the model without touching the application.',
+    'ai.agnostic.note': 'Whichever model — frontier, sovereign, or on-prem — it inherits the same Connector policies. The AI cannot bypass the dataspace.',
+    'ai.agnostic.swap.title': 'Drop in any LLM or SLM',
+    'ai.agnostic.swap.desc': 'Anthropic Claude is the default. Azure OpenAI is already wired. Mistral EU, Llama, your own fine-tuned SLM, or a sovereign on-prem model — all interchangeable. Same `tool_use` schema, same SSE streaming.',
+    'ai.agnostic.mcp.title': 'Bring your own MCP',
+    'ai.agnostic.mcp.desc': 'The connector layer speaks REST. Wrap it in your own Model Context Protocol server, plug in additional MCPs for internal tools, or expose PortGuard connectors as MCP to your existing agent stack.',
+    'ai.agnostic.policy.title': 'Policy stays at the connector',
+    'ai.agnostic.policy.desc': 'No matter which model is reasoning, the access decisions live at the Connector + Digidentity layer. Swapping the LLM does not weaken governance — it cannot, by architecture.',
+    'ai.vendors.current': 'AVAILABLE NOW',
+    'ai.vendors.drop': 'DROP-IN COMPATIBLE',
+    'ai.vendors.future': 'FUTURE / SOVEREIGN',
+  },
+  nl: {
+    'app.tagline': 'door DronePort Rotterdam',
+    'nav.demo': 'Demo',
+    'nav.capabilities': 'Kerncapaciteiten',
+    'nav.personas': 'Personas',
+    'nav.truths': 'Drie waarheden',
+    'nav.identity': 'Identiteit',
+    'nav.lifecycle': 'Levenscyclus',
+    'nav.architecture': 'Architectuur',
+    'nav.ai': 'AI agnostisch',
+    'nav.usecases': 'Use cases',
+    'nav.roles': 'Rollen',
+    'nav.value': 'Waarde',
+    'mode.title': 'Kies hoe je wilt presenteren',
+    'mode.subtitle': 'Deze pagina vervangt de PowerPoint — kies een modus op basis van publiek en tijd.',
+    'mode.promo': 'Promo',
+    'mode.promo.desc': 'Hoogtepunten in 1,5–2 min. Vijf kerncapaciteiten. Voor bestuurders.',
+    'mode.promo.duration': '± 2 min',
+    'mode.demo': 'Volledige demo',
+    'mode.demo.desc': 'Complete rondleiding — drie video\'s, architectuur, identiteit, alle use cases.',
+    'mode.demo.duration': '± 15 min',
+    'mode.quick': 'Korte demo',
+    'mode.quick.desc': 'Verkorte versie: hero, personas, één video, de architectuur in 2 lagen.',
+    'mode.quick.duration': '± 5 min',
+    'hero.pill': 'Live · 3 InnoTractor Connectoren · Digidentity-geverifieerd',
+    'hero.subtitle': 'Situationeel bewustzijn aangedreven door InnoTractor-connectoren en Digidentity. Selecteer uw organisatie.',
+    'hero.principle': 'De data verplaatst zich nooit. Het toegangsrecht wel.',
+    'hero.governor.label': 'Ecosysteembeheerder',
+    'hero.governor.note': 'DronePort Rotterdam beheert het ecosysteem — maar krijgt nooit toegang tot data van deelnemers.',
+    'partners.footer': 'Toegang beheerd door Digidentity-beleid via InnoTractor-connectoren. Data & AI door Avanade.',
+    'personas.role.provider': 'AANBIEDER',
+    'personas.role.consumer': 'AFNEMER',
+    'personas.role.governor': 'BEHEERDER',
+    'personas.havenbedrijf.desc': 'Primaire data-aanbieder. 8 SecurityCamera-records live. Havenbrede incidenten. Volledig catalogusoverzicht.',
+    'personas.douane.desc': 'Douane — eigen AUS-vaartuigen (UAV / USV / UGV). Bekijkt Havenbedrijf-camera\'s via gedeeld dataspace-beleid.',
+    'personas.politie.desc': 'Zeehavenpolitie — eigen UAV-vloot en bodycams. Live bodycam-stream gedeeld in real time via de connector.',
+    'personas.governor.desc': 'Ecosysteembeheerder — stelt technische, juridische en datamodelstandaarden vast. Geen toegang tot deelnemersdata.',
+    'personas.enter': 'Open platform',
+    'personas.caps.havenbedrijf': ['8 SecurityCameras (live)', 'Havenbrede incidenten', 'Volledig catalogusoverzicht'],
+    'personas.caps.douane': ['CustomsAUS (UAV/USV/UGV)', 'Gedeelde cameratoegang', 'Inspectiezone-tracking'],
+    'personas.caps.politie': ['Politie-UAV-vloot', 'Bodycam live stream', 'Gedeelde cameratoegang'],
+    'personas.caps.governor': ['Technische standaarden', 'Juridische overeenkomsten', 'Canonieke rollenlijst'],
+
+    'capabilities.title': 'Vijf kerncapaciteiten',
+    'capabilities.subtitle': 'Dit zijn de vijf dingen om te tonen in elke publieksdemo. Elk verwijst naar een specifiek moment in de live applicatie.',
+    'cap.1.title': 'Toegang voor Haven, Douane, Politie',
+    'cap.1.desc': 'Drie personas, drie onafhankelijke connectoren. Elke organisatie ziet alleen wat haar beleid toestaat — afgedwongen bij de connector, niet in de UI.',
+    'cap.2.title': 'Deelnemers in PortGuard',
+    'cap.2.desc': 'Havenbedrijf Rotterdam, Douane, Zeehavenpolitie. DronePort Rotterdam als ecosysteembeheerder — neutraal, nooit operationeel.',
+    'cap.3.title': 'Beleid: Douane bekijkt PoR-camera\'s',
+    'cap.3.desc': 'Douane heeft geen eigen camera\'s. Een dataspace-beleid geeft leestoegang tot de 8 live camera\'s van Havenbedrijf. Beleid intrekken → toegang verdwijnt.',
+    'cap.4.title': 'Drone-camera\'s beschikbaar voor PoR',
+    'cap.4.desc': 'Politiedrones en Douane-AUS-vaartuigen stellen feeds beschikbaar aan het Havenbedrijf voor situationeel bewustzijn — onder eigen contracten.',
+    'cap.5.title': 'PoR-toegang tot politie-bodycam',
+    'cap.5.desc': 'Agent tikt Start Sharing → stream verschijnt binnen 5 seconden bij Havenbedrijf. Stop → verdwijnt overal. Echte connector-writes.',
+
+    'demo.title': 'Zie het bewegen.',
+    'demo.subtitle': 'Drie opnamen uit het live prototype. Kies een fragment; de speler laadt het.',
+    'demo.recording': 'REC',
+    'demo.now': 'NU SPELEND',
+    'demo.connector': 'CONNECTOR',
+
+    'personas.section.title': 'Drie organisaties. Eén ecosysteem.',
+    'personas.section.subtitle': 'Elke persona is een echte connector met een echt endpoint. De beheerder staat buiten de datastroom.',
+
+    'identity.title': 'Identiteit & Toegang',
+    'identity.subtitle': 'Twee vragen, twee antwoorden. PortGuard scheidt authenticatie van autorisatie bewust.',
+    'identity.who.title': 'Wie ben je?',
+    'identity.who.answer': 'Beantwoord door Digidentity.',
+    'identity.who.desc': 'Digidentity is de identiteitsprovider voor PortGuard. Ondersteunt DigiD (Nederlandse burgers), eHerkenning (Nederlandse bedrijven) en eIDAS (grensoverschrijdende Europese identiteit). Wanneer een connector zich aanmeldt, voegt deze een Digidentity-geverifieerd certificaat toe. Geen partij hoeft de zelfverklaring van een andere te vertrouwen.',
+    'identity.what.title': 'Wat mag je?',
+    'identity.what.answer': 'Beantwoord door elke connector.',
+    'identity.what.desc': 'Zodra identiteit is vastgesteld, beslist elke connector onafhankelijk wat de aanvragende partij mag doen. Rolgebaseerd beleid wordt vastgesteld door de data-eigenaar — niet door Digidentity, niet door DronePort. Het governance-raamwerk van DronePort definieert welke rollen canoniek zijn; individuele organisaties brengen hun interne rollen daaraan toe.',
+    'identity.note.label': 'Let op',
+    'identity.note.text': 'Digidentity-onboarding is onderdeel van het PortGuard-project. De definitieve keuze welke standaard per organisatie geldt, is nog een businessbeslissing. DigiD wordt momenteel gebruikt als illustratief voorbeeld.',
+    'identity.wallet.title': 'Het pad naar wallet-gebaseerde identiteit',
+    'identity.wallet.desc': 'Het huidige Verifiable Credential-model is forward-compatible met wallet-gebaseerde identiteit. De ambitie is migratie naar de EU Digital Identity Wallet (eIDAS 2.0) — elke organisatie en geautoriseerde machine houdt een eigen draagbare, zelfsoevereine credential-wallet.',
+    'identity.machines.title': 'Machine-identiteiten — niet alleen mensen',
+    'identity.machines.desc': 'Camerasystemen, drones, AI-agenten en geautomatiseerde diensten hebben allemaal identiteiten en toegangsrechten in deze architectuur. Het connector- en beleidsmodel werkt identiek of de aanvrager nu een douane-inspecteur is of een autonome drone.',
+
+    'architecture.title': 'Gebouwd op InnoTractor, Digidentity en Avanade.',
+    'architecture.subtitle': 'Klik op een laag om uit te klappen. De connector-laag is waar data-soevereiniteit zit.',
+    'architecture.endpoints': 'Live connector-endpoints',
+
+    'matrix.title': 'AI Tool Toegangsmatrix',
+    'matrix.subtitle': 'De AI-assistent is gebonden aan dezelfde governance als de connector. Hij kan geen tools aanroepen buiten de toegestane scope van de persona — en legt uit waarom op verzoek.',
+    'matrix.tool': 'AI Tool',
+
+    'usecases.title': 'Drie use cases.',
+    'usecases.subtitle': 'UC1 en UC2 zijn vandaag live. UC3 is uitgewerkt, klaar voor de volgende fase.',
+    'usecases.live': 'VANDAAG LIVE',
+    'usecases.next': 'VOLGENDE FASE',
+    'uc1.title': 'UC1 — Beheerde Toegang',
+    'uc1.points': [
+      'Cross-organisatie data-toegang onder machine-onderhandelde contracten',
+      'Geen gedeelde wachtwoorden — Digidentity-geverifieerde identiteit',
+      'Persona-wissel toont drie views van dezelfde haven',
+      'Incident-declaratie zichtbaar bij alle drie organisaties',
+      'AI-assistent weigert queries buiten scope en legt uit waarom',
+    ],
+    'uc2.title': 'UC2 — Beheerde Live Video',
+    'uc2.points': [
+      'Live bodycam-stream beheerd door dataspace-beleid',
+      'Stream verschijnt binnen 5 seconden van de connector-write',
+      'Kleurgecodeerd per eigenaar — eigenaarschap zichtbaar in één oogopslag',
+      'Douane kan het niet zien — geen contract, structureel afwezig',
+      'Stop Sharing verwijdert de feed bij alle kijkers direct',
+      'Disaster Mode: tijdgebonden noodtoegang, automatisch verlopen',
+    ],
+    'uc3.title': 'UC3 — Beheerde Bewijsoverdracht',
+    'uc3.points': [
+      'Drone-beelden tussen organisaties met chain of custody',
+      'SHA-256-hash bewijst dat het bestand niet is gewijzigd',
+      'ODRL-gebruiksvoorwaarden reizen mee met het bestand',
+      'Secundaire overdracht naar OM ook beheerd',
+      'Architectuur voor UC3 is al aanwezig',
+    ],
+
+    'roles.title': 'Rollenbeheer — de canonieke lijst',
+    'roles.subtitle': 'Het moeilijkste probleem is niet technisch. "Inspecteur" bij Douane betekent niet hetzelfde als "Inspecteur" bij Politie. Mappen is organisatorisch en politiek.',
+    'roles.governor.title': 'DronePort beheert',
+    'roles.governor.points': [
+      'Definieert de canonieke rollenlijst',
+      'Keurt wijzigingen aan de lijst goed',
+      'Bezit het standaardisatieproces',
+    ],
+    'roles.org.title': 'Elke organisatie mapt',
+    'roles.org.points': [
+      'Mapt eigen interne rollen naar canonieke',
+      'Stelt beleid in dat verwijst naar canonieke rollen',
+      'Behoudt soevereiniteit over eigen data',
+    ],
+    'roles.policy.title': 'Twee checks, beide moeten slagen',
+    'roles.policy.points': [
+      'Gebruiksbeleid: is deze actie toegestaan?',
+      'Rolbeleid: staat deze rol deze actie toe?',
+      'Beide poorten open → data stroomt. Anders → geweigerd.',
+    ],
+
+    'value.title': 'Drie operationele scenario\'s.',
+    'value.subtitle': 'Dezelfde architectuur levert op bij incidenten, audits en ecosysteemgroei.',
+    'value.s1.title': 'Actief beveiligingsincident',
+    'value.s1.without': '45–90 min · telefoontjes · e-mailexports · incident escaleert tijdens wachten',
+    'value.s1.with': 'Declareer Incident → alle drie kaarten binnen seconden · camera\'s & telemetrie onder bestaand beleid · audit-log automatisch',
+    'value.s2.title': 'AVG / NIS2 audit',
+    'value.s2.without': 'Weken onderzoek · onvolledige administratie · AVG-boetes tot 4% wereldwijde omzet',
+    'value.s2.with': 'Connector-log: identiteit, rol, tijdstempel, beleidsreferentie per event · export in minuten · volledige compliance aantoonbaar',
+    'value.s3.title': 'Nieuwe deelnemer treedt toe',
+    'value.s3.without': 'Nieuwe juridische overeenkomsten vanaf nul · IT-integratie van weken tot maanden · kans kan verlopen',
+    'value.s3.with': 'Connect Connector eenmalig · DronePort governance-overeenkomst tekenen · time-to-value: dagen, geen maanden',
+    'value.without': 'ZONDER DATASPACE',
+    'value.with': 'MET PORTGUARD',
+
+    'status.title': 'Huidige status.',
+    'status.live.title': 'Vandaag live',
+    'status.live': [
+      '3 live InnoTractor connector-endpoints',
+      '8 SecurityCamera-records — Havenbedrijf',
+      'Persona-selector met connector-niveau beleid',
+      'Mapbox-kaart · 5-seconden-polling · geanimeerde markers',
+      'Bodycam Start/Stop Sharing — echte connector-writes',
+      'Scenario\'s-paneel — live writes met dataspace-effect',
+      'AI-assistent (Claude + Azure OpenAI) — policy-bound',
+      'Volledige EN / NL toggle',
+    ],
+    'status.pending.title': 'In afwachting van InnoTractor-modelregistratie',
+    'status.pending': [
+      'BodyCamera-model — 6 records gereed',
+      'PoliceDrone-model — 4 records gereed',
+      'CustomsAUS-model — 5 records gereed',
+      'Incident cross-connector contracten',
+      'Eenmaal geregistreerd: markers verschijnen automatisch, geen codewijziging',
+    ],
+
+    'closing.title': 'Dat is de dataspace. Dat is PortGuard.',
+    'closing.text': 'Alles wat u heeft gezien — kaartupdates, incident-alerts, streams die verschijnen en verdwijnen, AI-antwoorden — wordt aangestuurd door live connector-writes naar echte InnoTractor-connectoren. Geen centrale database. Geen gedeeld admin-account. Geen telefoontjes tussen IT-afdelingen.',
+
+    'common.but': 'Maar',
+    'common.endpoint': 'endpoint',
+    'common.changemode': 'Wissel modus',
+
+    // Lifecycle
+    'lifecycle.title': 'De aanvraag reist.',
+    'lifecycle.subtitle': 'Zeven stappen van intentie tot toekenning. Authenticatie via Digidentity. Autorisatie bij elke connector. Niets in de UI beslist.',
+    'lifecycle.steps': [
+      { label: 'Operator', sub: 'Agent · drone · gebruiker' },
+      { label: 'Digidentity', sub: 'DigiD · eHerkenning · eIDAS' },
+      { label: 'Verifiable Credential', sub: 'Rollen + claims ondertekend' },
+      { label: 'Access Token', sub: 'Kortlevend · scoped' },
+      { label: 'Connector', sub: 'InnoTractor DSP' },
+      { label: 'Policy Engine', sub: 'Gebruik + rol-check' },
+      { label: 'Response', sub: 'Toegekend · vervalt automatisch' },
+    ],
+    'lifecycle.traditional.label': 'TRADITIONEEL',
+    'lifecycle.traditional.title': 'Gedeelde DB → Apps → UI-filters',
+    'lifecycle.traditional.note': 'Centrale opslag. Data verlaat oorsprong. AVG-blootstelling. Audit gefragmenteerd.',
+    'lifecycle.portguard.label': 'PORTGUARD',
+    'lifecycle.portguard.title': 'Soevereine systemen → Connectoren → Contracten → UI',
+    'lifecycle.portguard.note': 'Audit per connector. ODRL-afgedwongen. Toegang vervalt automatisch. Elke uitwisseling gelogd.',
+
+    // Three truths
+    'truths.title': 'Dezelfde kaart. Drie waarheden.',
+    'truths.subtitle': 'Wissel rol — zie wat elke autoriteit contractueel mag bekijken. Weigering wordt niet door de UI verborgen; de data is structureel afwezig in het connector-antwoord.',
+    'truths.granted': 'TOEGEKEND PER CONTRACT',
+    'truths.denied': 'GEWEIGERD DOOR ODRL',
+    'truths.cansee': 'mag zien:',
+    'truths.excluded': 'Contractueel uitgesloten:',
+
+    'truths.port.sees': [
+      'Alle 8 SecurityCameras (live)',
+      'Havenbrede incidenten',
+      'Volledige dataspace-catalogus',
+      'Bodycam-streams gedeeld door politie',
+      'AUS-vaartuigposities gedeeld door Douane',
+    ],
+    'truths.port.denied': [
+      'Douane-aangiftes (volledig)',
+      'Politiezaakdossiers',
+      'Agent-DIDs',
+    ],
+    'truths.douane.sees': [
+      'Havenbedrijf-camera\'s via gedeeld beleid',
+      'Havenbrede incidenten',
+      'Eigen CustomsAUS-vloot (UAV/USV/UGV)',
+      'Inspectiezone-overlays',
+    ],
+    'truths.douane.denied': [
+      'Politie-bodycams',
+      'Politie-UAV missieplanning',
+      'Interne haven-logistiek',
+    ],
+    'truths.politie.sees': [
+      'Havenbedrijf-camera\'s via gedeeld beleid',
+      'Havenbrede incidenten',
+      'Eigen UAV-vloot & bodycams',
+      'Bewijs chain of custody',
+    ],
+    'truths.politie.denied': [
+      'CustomsAUS-missies',
+      'Douane-aangiftes',
+      'Commerciële container-manifesten',
+    ],
+
+    // AI Agnosticism
+    'ai.agnostic.title': 'AI is agnostisch. Breng je eigen brein.',
+    'ai.agnostic.subtitle': 'De agentic AI-laag is bewust leveranciersneutraal. Zelfde tool-definities, zelfde persona-context, zelfde streaming-formaat — wissel het model zonder de applicatie aan te raken.',
+    'ai.agnostic.note': 'Welk model ook — frontier, soeverein of on-prem — het erft hetzelfde Connector-beleid. De AI kan de dataspace niet omzeilen.',
+    'ai.agnostic.swap.title': 'Plug in elke LLM of SLM',
+    'ai.agnostic.swap.desc': 'Anthropic Claude is de default. Azure OpenAI is al aangesloten. Mistral EU, Llama, je eigen fine-tuned SLM of een soeverein on-prem model — allemaal uitwisselbaar. Zelfde `tool_use`-schema, zelfde SSE-streaming.',
+    'ai.agnostic.mcp.title': 'Breng je eigen MCP',
+    'ai.agnostic.mcp.desc': 'De connector-laag spreekt REST. Wikkel het in een eigen Model Context Protocol-server, plug extra MCP\'s aan voor interne tools, of stel PortGuard-connectoren beschikbaar als MCP aan je bestaande agent-stack.',
+    'ai.agnostic.policy.title': 'Beleid blijft bij de connector',
+    'ai.agnostic.policy.desc': 'Welk model er ook redeneert, de toegangsbeslissingen leven bij de Connector + Digidentity-laag. Een LLM wisselen verzwakt de governance niet — dat kan niet, by architecture.',
+    'ai.vendors.current': 'NU BESCHIKBAAR',
+    'ai.vendors.drop': 'DROP-IN COMPATIBEL',
+    'ai.vendors.future': 'TOEKOMST / SOEVEREIN',
+
+  }
+};
+
+const LangContext = createContext({ lang: 'en', t: (k) => k });
+const useT = () => useContext(LangContext);
+
+// =============== DATA ===============
+const VIDEOS = [
+  { id: 1, src: 'videos/PortGuardDemo-1_1.mp4', tag: 'DEMO 01', personaId: 'port' },
+  { id: 2, src: 'videos/PortGuardDemo-1_2.mp4', tag: 'DEMO 02', personaId: 'douane' },
+  { id: 3, src: 'videos/PortGuardDemo-1_3.mp4', tag: 'DEMO 03', personaId: 'politie' },
+];
+
+const PERSONAS = [
+  { id: 'port', klass: 'persona-port', badge: 'badge-provider', roleKey: 'personas.role.provider',
+    name: 'Havenbedrijf Rotterdam', code: 'PORTGUARD-PORT-0', endpoint: 'portofrotterdam.portguard.ds.innotractor.com',
+    icon: '🏗️', accent: '#003DA5', accentLight: '#3b82f6',
+    descKey: 'personas.havenbedrijf.desc', capsKey: 'personas.caps.havenbedrijf',
+  },
+  { id: 'douane', klass: 'persona-douane', badge: 'badge-consumer-douane', roleKey: 'personas.role.consumer',
+    name: 'Douane', code: 'PORTGUARD-DOUANE-0', endpoint: 'douane.portguard.ds.innotractor.com',
+    icon: '🚢', accent: '#0EA5E9', accentLight: '#0EA5E9',
+    descKey: 'personas.douane.desc', capsKey: 'personas.caps.douane',
+  },
+  { id: 'politie', klass: 'persona-politie', badge: 'badge-consumer-politie', roleKey: 'personas.role.consumer',
+    name: 'Zeehavenpolitie', code: 'PORTGUARD-POLITIE-0', endpoint: 'politie.portguard.ds.innotractor.com',
+    icon: '🚁', accent: '#F97316', accentLight: '#F97316',
+    descKey: 'personas.politie.desc', capsKey: 'personas.caps.politie',
+  },
+];
+
+const GOVERNOR = {
+  id: 'governor', klass: 'persona-governor', badge: 'badge-governor', roleKey: 'personas.role.governor',
+  name: 'DronePort Rotterdam', code: 'ECOSYSTEM GOVERNOR', endpoint: '— governs · does not access data —',
+  icon: '⚖️', accent: '#a78bfa',
+  descKey: 'personas.governor.desc', capsKey: 'personas.caps.governor',
+};
+
+const CAPABILITIES = [
+  { num: '01', color: '#003DA5', tKey: 'cap.1' },
+  { num: '02', color: '#a78bfa', tKey: 'cap.2' },
+  { num: '03', color: '#0EA5E9', tKey: 'cap.3' },
+  { num: '04', color: '#38bdf8', tKey: 'cap.4' },
+  { num: '05', color: '#F97316', tKey: 'cap.5' },
+];
+
+const ARCHITECTURE = [
+  { id: 'frontend', num: '01', accent: '#38bdf8',
+    title: 'Frontend', subtitle: 'Web app — three persona views',
+    stack: ['Next.js 14', 'Mapbox GL', 'Framer Motion'],
+    nodes: [
+      { name: 'Persona Selector', desc: 'Port · Douane · Politie' },
+      { name: 'Live Map', desc: '5-sec polling · animated markers' },
+      { name: 'Asset Panels', desc: 'Click marker → full telemetry' },
+      { name: 'Scenarios Panel', desc: 'Live connector writes' },
+    ],
+  },
+  { id: 'connector', num: '02', accent: '#38bdf8',
+    title: 'InnoTractor Connectors', subtitle: 'Three live endpoints in production',
+    stack: ['InnoTractor DSP', 'Eclipse EDC'],
+    nodes: [
+      { name: 'PORTGUARD-PORT-0', desc: 'portofrotterdam.portguard.ds.innotractor.com' },
+      { name: 'PORTGUARD-DOUANE-0', desc: 'douane.portguard.ds.innotractor.com' },
+      { name: 'PORTGUARD-POLITIE-0', desc: 'politie.portguard.ds.innotractor.com' },
+    ],
+  },
+  { id: 'identity', num: '03', accent: '#a78bfa',
+    title: 'Digidentity', subtitle: 'Authentication — DigiD · eHerkenning · eIDAS',
+    stack: ['DigiD', 'eHerkenning', 'eIDAS', 'eIDAS 2.0 (roadmap)'],
+    nodes: [
+      { name: 'DigiD', desc: 'Dutch citizens' },
+      { name: 'eHerkenning', desc: 'Dutch businesses' },
+      { name: 'eIDAS', desc: 'Cross-border European' },
+      { name: 'Wallet (eIDAS 2.0)', desc: 'Future — portable self-sovereign' },
+    ],
+  },
+  { id: 'ai', num: '04', accent: '#3b82f6',
+    title: 'Data & AI by Avanade', subtitle: 'AI-agnostic, policy-bound',
+    stack: ['Anthropic Claude', 'Azure OpenAI', 'SSE streaming'],
+    nodes: [
+      { name: 'NL Query', desc: 'Persona-aware, tool-using' },
+      { name: 'Tool-bound by persona', desc: 'AI cannot bypass connector policy' },
+      { name: 'Map highlight', desc: 'AI flies to relevant assets' },
+    ],
+  },
+];
+
+const AI_MATRIX = [
+  { tool: 'get_security_cameras', port: 'check', douane: 'check', politie: 'check', portNote: 'All 8 cameras', douaneNote: 'Shared policy', politieNote: 'Shared policy' },
+  { tool: 'get_incidents', port: 'check', douane: 'check', politie: 'check' },
+  { tool: 'get_dataspace_members', port: 'check', douane: 'check', politie: 'check' },
+  { tool: 'get_policies', port: 'check', douane: 'check', politie: 'check' },
+  { tool: 'get_catalogue_models', port: 'check', douane: 'check', politie: 'check' },
+  { tool: 'get_customs_aus', port: 'cross', douane: 'check', politie: 'cross', douaneNote: 'Own data' },
+  { tool: 'get_police_drones', port: 'cross', douane: 'cross', politie: 'check', politieNote: 'Own data' },
+  { tool: 'get_body_cameras', port: 'cross', douane: 'cross', politie: 'check', politieNote: 'Own data' },
+];
+
+function downloadHTML() {
+  const html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'portguard-blueprint.html';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// =============== COMPONENTS ===============
+function Wordmark({ className = '' }) {
+  return (
+    <span className={`wordmark ${className}`}>
+      <span className="wordmark-port">Port</span><span className="wordmark-g">G</span><span className="wordmark-uard">uard</span>
+    </span>
+  );
+}
+
+function ModeSelector({ onSelect }) {
+  const { t } = useT();
+  const modes = [
+    { id: 'promo', durationKey: 'mode.promo.duration', titleKey: 'mode.promo', descKey: 'mode.promo.desc', icon: '⚡', color: '#F97316' },
+    { id: 'demo', durationKey: 'mode.demo.duration', titleKey: 'mode.demo', descKey: 'mode.demo.desc', icon: '📺', color: '#38bdf8' },
+    { id: 'quick', durationKey: 'mode.quick.duration', titleKey: 'mode.quick', descKey: 'mode.quick.desc', icon: '⏱️', color: '#a78bfa' },
+  ];
+  return (
+    <section className="relative py-24 lg:py-32">
+      <div className="max-w-[1400px] mx-auto px-6 lg:px-10 text-center">
+        <div className="flex justify-center mb-8 reveal">
+          <span className="pill"><span className="pill-dot" />{t('hero.pill')}</span>
+        </div>
+        <h1 className="reveal" style={{ animationDelay: '100ms' }}>
+          <Wordmark className="text-6xl md:text-7xl lg:text-8xl" />
+        </h1>
+        <p className="mt-6 text-lg md:text-xl text-[var(--ink-dim)] max-w-2xl mx-auto leading-relaxed reveal" style={{ animationDelay: '200ms' }}>
+          {t('hero.subtitle')}
+        </p>
+      </div>
+
+      <div className="max-w-[1100px] mx-auto px-6 lg:px-10 mt-20">
+        <div className="text-center mb-10 reveal" style={{ animationDelay: '300ms' }}>
+          <div className="font-mono text-xs uppercase tracking-[0.25em] text-[var(--ink-faint)] mb-3">// CHOOSE YOUR MODE</div>
+          <h2 className="text-2xl md:text-3xl font-bold">{t('mode.title')}</h2>
+          <p className="text-[var(--ink-dim)] mt-2 max-w-xl mx-auto">{t('mode.subtitle')}</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {modes.map((m, i) => (
+            <button key={m.id} onClick={() => onSelect(m.id)}
+              className="cap-card text-left reveal group"
+              style={{ '--cap-color': m.color, '--cap-shadow': `${m.color}66`, animationDelay: `${400 + i * 100}ms` }}>
+              <div className="flex items-center justify-between mb-5">
+                <div className="text-3xl">{m.icon}</div>
+                <span className="font-mono text-xs px-2.5 py-1 rounded-full border border-[var(--line-bright)] text-[var(--ink-dim)]">
+                  {t(m.durationKey)}
+                </span>
+              </div>
+              <div className="text-2xl font-bold mb-2">{t(m.titleKey)}</div>
+              <p className="text-sm text-[var(--ink-dim)] leading-relaxed mb-5">{t(m.descKey)}</p>
+              <div className="flex items-center gap-2 text-sm font-semibold" style={{ color: m.color }}>
+                <span>Start</span>
+                <span className="transition-transform group-hover:translate-x-1">→</span>
+              </div>
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-16 text-center reveal" style={{ animationDelay: '800ms' }}>
+          <p className="text-xs text-[var(--ink-faint)]">{t('partners.footer')}</p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Header({ mode, onChangeMode, lang, setLang, onNav }) {
+  const { t } = useT();
+  const navItems = {
+    promo: [
+      { id: 'capabilities', labelKey: 'nav.capabilities' },
+      { id: 'demo', labelKey: 'nav.demo' },
+      { id: 'truths', labelKey: 'nav.truths' },
+      { id: 'value', labelKey: 'nav.value' },
+    ],
+    demo: [
+      { id: 'capabilities', labelKey: 'nav.capabilities' },
+      { id: 'demo', labelKey: 'nav.demo' },
+      { id: 'personas', labelKey: 'nav.personas' },
+      { id: 'truths', labelKey: 'nav.truths' },
+      { id: 'identity', labelKey: 'nav.identity' },
+      { id: 'lifecycle', labelKey: 'nav.lifecycle' },
+      { id: 'architecture', labelKey: 'nav.architecture' },
+      { id: 'ai-agnostic', labelKey: 'nav.ai' },
+      { id: 'usecases', labelKey: 'nav.usecases' },
+      { id: 'roles', labelKey: 'nav.roles' },
+      { id: 'value', labelKey: 'nav.value' },
+    ],
+    quick: [
+      { id: 'capabilities', labelKey: 'nav.capabilities' },
+      { id: 'demo', labelKey: 'nav.demo' },
+      { id: 'truths', labelKey: 'nav.truths' },
+      { id: 'architecture', labelKey: 'nav.architecture' },
+      { id: 'ai-agnostic', labelKey: 'nav.ai' },
+    ],
+  };
+  const items = navItems[mode] || navItems.demo;
+
+  return (
+    <header className="border-b border-[var(--line)] bg-[var(--bg)]/85 backdrop-blur-md sticky top-0 z-30">
+      <div className="max-w-[1400px] mx-auto px-6 lg:px-10 py-4 flex items-center justify-between gap-6">
+        <div className="flex items-center gap-3">
+          <div className="logo-pg">PG</div>
+          <div>
+            <div className="font-bold text-lg leading-none tracking-tight">PortGuard</div>
+            <div className="text-xs text-[var(--ink-dim)] mt-1">{t('app.tagline')}</div>
+          </div>
+        </div>
+        <nav className="hidden xl:flex items-center gap-6">
+          {items.map(item => (
+            <button key={item.id} onClick={() => onNav(item.id)}
+              className="text-sm text-[var(--ink-dim)] hover:text-[var(--ink)] transition">
+              {t(item.labelKey)}
+            </button>
+          ))}
+        </nav>
+        <div className="flex items-center gap-3">
+          <button onClick={onChangeMode}
+            className="btn-ghost px-3 py-1.5 rounded-md text-xs font-mono uppercase tracking-wider hidden md:block">
+            {mode === 'promo' ? '⚡ ' + t('mode.promo') : mode === 'quick' ? '⏱ ' + t('mode.quick') : '📺 ' + t('mode.demo')}
+          </button>
+          <div className="flex items-center gap-1 px-3 py-1.5 rounded-md border border-[var(--line-bright)] text-xs font-mono">
+            <button onClick={() => setLang('en')} className={`px-1 ${lang === 'en' ? 'text-white' : 'text-[var(--ink-faint)]'}`}>EN</button>
+            <span className="text-[var(--ink-faint)]">|</span>
+            <button onClick={() => setLang('nl')} className={`px-1 ${lang === 'nl' ? 'text-white' : 'text-[var(--ink-faint)]'}`}>NL</button>
+          </div>
+          <button onClick={downloadHTML} className="btn-primary px-4 py-2 rounded-lg text-xs font-semibold hidden md:block">
+            ↓ Download
+          </button>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function Hero() {
+  const { t } = useT();
+  return (
+    <section className="relative py-20 lg:py-24">
+      <div className="max-w-[1400px] mx-auto px-6 lg:px-10 text-center">
+        <div className="flex justify-center mb-8 reveal">
+          <span className="pill"><span className="pill-dot" />{t('hero.pill')}</span>
+        </div>
+        <h1 className="reveal" style={{ animationDelay: '100ms' }}>
+          <Wordmark className="text-7xl md:text-8xl lg:text-9xl" />
+        </h1>
+        <p className="mt-8 text-lg md:text-xl text-[var(--ink-dim)] max-w-2xl mx-auto leading-relaxed reveal" style={{ animationDelay: '200ms' }}>
+          {t('hero.subtitle')}
+        </p>
+        <div className="mt-10 max-w-2xl mx-auto reveal" style={{ animationDelay: '300ms' }}>
+          <div className="pull-quote text-center">
+            "{t('hero.principle')}"
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-[1400px] mx-auto px-6 lg:px-10 mt-14">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {PERSONAS.map((p, i) => (
+            <PersonaCard key={p.id} p={p} delay={400 + i * 100} />
+          ))}
+        </div>
+
+        <div className="mt-5">
+          <PersonaCard p={GOVERNOR} delay={700} fullWidth />
+        </div>
+      </div>
+
+      <div className="max-w-[1400px] mx-auto px-6 lg:px-10 mt-14 text-center reveal" style={{ animationDelay: '800ms' }}>
+        <p className="text-xs text-[var(--ink-faint)]">{t('partners.footer')}</p>
+      </div>
+    </section>
+  );
+}
+
+function PersonaCard({ p, delay, fullWidth }) {
+  const { t } = useT();
+  const caps = t(p.capsKey);
+  return (
+    <article className={`persona-card ${p.klass} reveal`} style={{ animationDelay: `${delay}ms` }}>
+      <div className="flex items-center justify-between mb-5">
+        <span className={`badge-role ${p.badge}`}>
+          <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'currentColor' }} />
+          {t(p.roleKey)}
+        </span>
+        <span className="text-2xl">{p.icon}</span>
+      </div>
+      <div className="text-xl font-bold leading-tight">{p.name}</div>
+      <div className="font-mono text-xs mt-1.5" style={{ color: p.accent === '#003DA5' ? '#3b82f6' : p.accent }}>{p.code}</div>
+      {p.endpoint && (
+        <div className="font-mono text-[10px] text-[var(--ink-faint)] mt-1 truncate">{p.endpoint}</div>
+      )}
+
+      <p className="text-sm text-[var(--ink-dim)] leading-relaxed mt-4 mb-5">{t(p.descKey)}</p>
+
+      <ul className="space-y-2">
+        {Array.isArray(caps) && caps.map((c, j) => (
+          <li key={j} className="flex items-center gap-2.5 text-sm" style={{ color: p.accent === '#003DA5' ? '#3b82f6' : p.accent }}>
+            <span className="w-1 h-1 rounded-full" style={{ background: p.accent === '#003DA5' ? '#3b82f6' : p.accent }} />
+            {c}
+          </li>
+        ))}
+      </ul>
+    </article>
+  );
+}
+
+function Capabilities({ id }) {
+  const { t } = useT();
+  return (
+    <section id={id} className="relative border-t border-[var(--line)] py-20">
+      <div className="max-w-[1400px] mx-auto px-6 lg:px-10">
+        <SectionHeader num="01" label={t('nav.capabilities')} title={t('capabilities.title')} subtitle={t('capabilities.subtitle')} />
+
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {CAPABILITIES.map((c, i) => (
+            <div key={c.num} className="cap-card reveal"
+                 style={{ '--cap-color': c.color, '--cap-shadow': `${c.color}66`, animationDelay: `${i * 80}ms` }}>
+              <div className="flex items-start justify-between mb-4">
+                <div className="cap-num" style={{ color: c.color }}>KEY · {c.num}</div>
+                <div className="w-2 h-2 rounded-full" style={{ background: c.color, boxShadow: `0 0 12px ${c.color}` }} />
+              </div>
+              <div className="text-lg font-bold leading-tight mb-3">{t(c.tKey + '.title')}</div>
+              <p className="text-sm text-[var(--ink-dim)] leading-relaxed">{t(c.tKey + '.desc')}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function DemoSection({ id, initial, quick }) {
+  const { t } = useT();
+  const initialIdx = initial != null ? PERSONAS.findIndex(p => p.id === initial) : 0;
+  const [active, setActive] = useState(Math.max(0, initialIdx));
+  const videoRef = useRef(null);
+  const v = VIDEOS[active];
+  const p = PERSONAS[active];
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.load();
+      videoRef.current.play().catch(() => {});
+    }
+  }, [active]);
+
+  return (
+    <section id={id} className="relative border-t border-[var(--line)] py-20">
+      <div className="max-w-[1400px] mx-auto px-6 lg:px-10">
+        <SectionHeader num="02" label={t('nav.demo')} title={t('demo.title')} subtitle={t('demo.subtitle')} />
+
+        {!quick && (
+          <div className="mt-10 flex flex-wrap gap-2">
+            {VIDEOS.map((vid, i) => {
+              const per = PERSONAS[i];
+              const accent = per.accent === '#003DA5' ? '#3b82f6' : per.accent;
+              return (
+                <button key={vid.id} onClick={() => setActive(i)}
+                  className="px-4 py-2.5 rounded-lg text-xs font-mono uppercase tracking-wider transition-all border"
+                  style={{
+                    borderColor: active === i ? accent : 'var(--line-bright)',
+                    background: active === i ? `${accent}20` : 'transparent',
+                    color: active === i ? 'white' : 'var(--ink-dim)',
+                  }}>
+                  <span className="mr-2" style={{ color: active === i ? accent : 'inherit' }}>●</span>
+                  {vid.tag} · {per.name}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        <div className="mt-6 grid grid-cols-12 gap-6">
+          <div className="col-span-12 lg:col-span-9">
+            <div className="video-frame">
+              <video ref={videoRef} controls preload="metadata" playsInline key={v.src} className="w-full aspect-video">
+                <source src={v.src} type="video/mp4" />
+                Your browser doesn't support embedded video.
+              </video>
+              <div className="video-corner tl" />
+              <div className="video-corner tr" />
+              <div className="video-corner bl" />
+              <div className="video-corner br" />
+              <div className="rec-badge">{t('demo.recording')} · {v.tag}</div>
+            </div>
+          </div>
+
+          <div className="col-span-12 lg:col-span-3">
+            <div className="border border-[var(--line)] bg-[var(--bg-card)] rounded-xl p-6 h-full">
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] mb-3"
+                   style={{ color: p.accent === '#003DA5' ? '#3b82f6' : p.accent }}>
+                {t('demo.now')}
+              </div>
+              <div className="text-lg font-bold leading-tight">{p.name}</div>
+              <div className="text-sm text-[var(--ink-dim)] mt-2 leading-relaxed">{t(p.descKey)}</div>
+
+              <div className="mt-5 pt-5 border-t border-[var(--line)]">
+                <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--ink-faint)] mb-2">
+                  {t('demo.connector')}
+                </div>
+                <div className="font-mono text-xs" style={{ color: p.accent === '#003DA5' ? '#3b82f6' : p.accent }}>
+                  {p.code}
+                </div>
+                <div className="font-mono text-[10px] text-[var(--ink-faint)] mt-1 break-all">{p.endpoint}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function SectionHeader({ num, label, title, subtitle }) {
+  return (
+    <div>
+      <div className="flex items-center gap-3 font-mono text-xs uppercase tracking-[0.2em] text-[var(--ink-faint)]">
+        <span>§ {num}</span>
+        <span className="w-8 h-px bg-[var(--ink-faint)]" />
+        <span style={{ color: '#7dd3fc' }}>{label}</span>
+      </div>
+      <h2 className="text-4xl md:text-5xl font-bold tracking-tight mt-3 leading-tight">{title}</h2>
+      {subtitle && <p className="text-[var(--ink-dim)] mt-3 max-w-3xl text-base leading-relaxed">{subtitle}</p>}
+    </div>
+  );
+}
+
+function PersonasSection({ id }) {
+  const { t } = useT();
+  return (
+    <section id={id} className="relative border-t border-[var(--line)] py-20">
+      <div className="max-w-[1400px] mx-auto px-6 lg:px-10">
+        <SectionHeader num="03" label={t('nav.personas')} title={t('personas.section.title')} subtitle={t('personas.section.subtitle')} />
+        <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-5">
+          {PERSONAS.map((p, i) => <PersonaCard key={p.id} p={p} delay={i * 80} />)}
+        </div>
+        <div className="mt-5">
+          <PersonaCard p={GOVERNOR} delay={240} />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function IdentitySection({ id }) {
+  const { t } = useT();
+  return (
+    <section id={id} className="relative border-t border-[var(--line)] py-20">
+      <div className="max-w-[1400px] mx-auto px-6 lg:px-10">
+        <SectionHeader num="04" label={t('nav.identity')} title={t('identity.title')} subtitle={t('identity.subtitle')} />
+
+        <div className="mt-12 grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <div className="arch-card rounded-xl p-7" style={{ '--accent': '#a78bfa', '--accent-glow': 'rgba(167,139,250,0.4)' }}>
+            <div className="font-mono text-xs uppercase tracking-[0.15em] mb-2" style={{ color: '#c4b5fd' }}>
+              QUESTION 1
+            </div>
+            <div className="text-2xl font-bold mb-1">{t('identity.who.title')}</div>
+            <div className="text-base font-semibold mb-4" style={{ color: '#c4b5fd' }}>{t('identity.who.answer')}</div>
+            <p className="text-sm text-[var(--ink-dim)] leading-relaxed mb-5">{t('identity.who.desc')}</p>
+            <div className="flex flex-wrap gap-2">
+              <span className="font-mono text-xs px-3 py-1.5 rounded-md border border-[#a78bfa]/40 bg-[#a78bfa]/10 text-[#c4b5fd]">DigiD</span>
+              <span className="font-mono text-xs px-3 py-1.5 rounded-md border border-[#a78bfa]/40 bg-[#a78bfa]/10 text-[#c4b5fd]">eHerkenning</span>
+              <span className="font-mono text-xs px-3 py-1.5 rounded-md border border-[#a78bfa]/40 bg-[#a78bfa]/10 text-[#c4b5fd]">eIDAS</span>
+            </div>
+          </div>
+
+          <div className="arch-card rounded-xl p-7" style={{ '--accent': '#3b82f6', '--accent-glow': 'rgba(59,130,246,0.4)' }}>
+            <div className="font-mono text-xs uppercase tracking-[0.15em] mb-2" style={{ color: '#7dd3fc' }}>
+              QUESTION 2
+            </div>
+            <div className="text-2xl font-bold mb-1">{t('identity.what.title')}</div>
+            <div className="text-base font-semibold mb-4" style={{ color: '#7dd3fc' }}>{t('identity.what.answer')}</div>
+            <p className="text-sm text-[var(--ink-dim)] leading-relaxed">{t('identity.what.desc')}</p>
+          </div>
+        </div>
+
+        <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <div className="rounded-xl p-6 border"
+               style={{ borderColor: 'rgba(167,139,250,0.4)', background: 'linear-gradient(135deg, var(--bg-card), rgba(167,139,250,0.05))' }}>
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-xl">🛂</span>
+              <div className="font-mono text-xs uppercase tracking-[0.15em] text-[#c4b5fd]">{t('identity.note.label')}</div>
+            </div>
+            <p className="text-sm text-[var(--ink-dim)] leading-relaxed">{t('identity.note.text')}</p>
+          </div>
+          <div className="rounded-xl p-6 border"
+               style={{ borderColor: 'rgba(56,189,248,0.4)', background: 'linear-gradient(135deg, var(--bg-card), rgba(56,189,248,0.05))' }}>
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-xl">👛</span>
+              <div className="font-mono text-xs uppercase tracking-[0.15em] text-[#7dd3fc]">ROADMAP · eIDAS 2.0</div>
+            </div>
+            <div className="text-base font-semibold mb-2">{t('identity.wallet.title')}</div>
+            <p className="text-sm text-[var(--ink-dim)] leading-relaxed">{t('identity.wallet.desc')}</p>
+          </div>
+        </div>
+
+        <div className="mt-6 rounded-xl p-6 border border-[var(--line)] bg-[var(--bg-card)]">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-xl">🤖</span>
+            <div className="font-mono text-xs uppercase tracking-[0.15em] text-[var(--ink-dim)]">MACHINE IDENTITIES</div>
+          </div>
+          <div className="text-base font-semibold mb-2">{t('identity.machines.title')}</div>
+          <p className="text-sm text-[var(--ink-dim)] leading-relaxed max-w-4xl">{t('identity.machines.desc')}</p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ArchitectureSection({ id }) {
+  const { t } = useT();
+  const [expandedId, setExpandedId] = useState('connector');
+
+  return (
+    <section id={id} className="relative border-t border-[var(--line)] py-20">
+      <div className="max-w-[1400px] mx-auto px-6 lg:px-10">
+        <SectionHeader num="05" label={t('nav.architecture')} title={t('architecture.title')} subtitle={t('architecture.subtitle')} />
+
+        <div className="mt-10 space-y-4">
+          {ARCHITECTURE.map((layer, i) => {
+            const expanded = expandedId === layer.id;
+            return (
+              <article key={layer.id} className={`arch-card ${expanded ? 'expanded' : ''} rounded-xl reveal`}
+                       style={{ '--accent': layer.accent, '--accent-glow': `${layer.accent}66`, animationDelay: `${i * 80}ms` }}>
+                <button onClick={() => setExpandedId(expanded ? null : layer.id)}
+                        className="w-full text-left p-7 md:p-8">
+                  <div className="flex items-start justify-between gap-6">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-3 flex-wrap">
+                        <div className="font-mono text-xs" style={{ color: layer.accent }}>L / {layer.num}</div>
+                        <div className="h-px w-12 bg-[var(--line)]" />
+                        <div className="flex gap-1.5 flex-wrap">
+                          {layer.stack.map((s, j) => (
+                            <span key={j} className="font-mono text-[10px] px-2 py-0.5 rounded-full border border-[var(--line-bright)] text-[var(--ink-dim)]">
+                              {s}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <h3 className="text-2xl md:text-3xl font-bold tracking-tight">{layer.title}</h3>
+                      <div className="text-sm text-[var(--ink-dim)] mt-1">{layer.subtitle}</div>
+                    </div>
+                    <svg width="14" height="14" viewBox="0 0 14 14"
+                         className={`shrink-0 mt-2 transition-transform duration-300 ${expanded ? 'rotate-45' : ''}`}
+                         style={{ color: layer.accent }}>
+                      <path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="1.5" />
+                    </svg>
+                  </div>
+                </button>
+
+                {expanded && (
+                  <div className="px-7 md:px-8 pb-7 pt-2 border-t border-[var(--line)] reveal">
+                    <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--ink-faint)] mt-5 mb-3">
+                      // components
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                      {layer.nodes.map((n, j) => (
+                        <div key={j} className="node p-4" style={{ '--accent': layer.accent }}>
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <div className="w-1 h-1 rounded-full" style={{ background: layer.accent }} />
+                            <div className="font-medium text-sm">{n.name}</div>
+                          </div>
+                          <div className="text-xs text-[var(--ink-dim)] leading-relaxed pl-3 font-mono break-all">{n.desc}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </article>
+            );
+          })}
+        </div>
+
+        {/* AI Matrix */}
+        <div className="mt-12 reveal">
+          <div className="font-mono text-xs uppercase tracking-[0.2em] text-[#7dd3fc] mb-3">// AI TOOL ACCESS</div>
+          <h3 className="text-2xl font-bold mb-2">{t('matrix.title')}</h3>
+          <p className="text-sm text-[var(--ink-dim)] max-w-3xl mb-6">{t('matrix.subtitle')}</p>
+
+          <div className="overflow-x-auto scrollbar-thin">
+            <table className="matrix">
+              <thead>
+                <tr>
+                  <th>{t('matrix.tool')}</th>
+                  <th style={{ color: '#3b82f6' }}>Havenbedrijf</th>
+                  <th style={{ color: '#0EA5E9' }}>Douane</th>
+                  <th style={{ color: '#F97316' }}>Zeehavenpolitie</th>
+                </tr>
+              </thead>
+              <tbody>
+                {AI_MATRIX.map((row, i) => (
+                  <tr key={i}>
+                    <td className="tool">{row.tool}</td>
+                    <td className={row.port}>{row.port === 'check' ? '✓' : '✗'} {row.portNote && <span className="text-[var(--ink-faint)] font-normal text-xs">{row.portNote}</span>}</td>
+                    <td className={row.douane}>{row.douane === 'check' ? '✓' : '✗'} {row.douaneNote && <span className="text-[var(--ink-faint)] font-normal text-xs">{row.douaneNote}</span>}</td>
+                    <td className={row.politie}>{row.politie === 'check' ? '✓' : '✗'} {row.politieNote && <span className="text-[var(--ink-faint)] font-normal text-xs">{row.politieNote}</span>}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function UseCasesSection({ id }) {
+  const { t } = useT();
+  const ucs = [
+    { id: 'uc1', titleKey: 'uc1.title', pointsKey: 'uc1.points', live: true, color: '#3b82f6' },
+    { id: 'uc2', titleKey: 'uc2.title', pointsKey: 'uc2.points', live: true, color: '#F97316' },
+    { id: 'uc3', titleKey: 'uc3.title', pointsKey: 'uc3.points', live: false, color: '#a78bfa' },
+  ];
+  return (
+    <section id={id} className="relative border-t border-[var(--line)] py-20">
+      <div className="max-w-[1400px] mx-auto px-6 lg:px-10">
+        <SectionHeader num="06" label={t('nav.usecases')} title={t('usecases.title')} subtitle={t('usecases.subtitle')} />
+
+        <div className="mt-10 grid grid-cols-1 lg:grid-cols-3 gap-5">
+          {ucs.map((uc, i) => {
+            const points = t(uc.pointsKey);
+            return (
+              <div key={uc.id} className="cap-card reveal"
+                   style={{ '--cap-color': uc.color, '--cap-shadow': `${uc.color}66`, animationDelay: `${i * 100}ms` }}>
+                <div className="flex items-center justify-between mb-4">
+                  <span className="font-mono text-[10px] uppercase tracking-[0.18em] px-2 py-1 rounded-full"
+                        style={{ background: uc.live ? 'rgba(110,231,183,0.15)' : 'rgba(167,139,250,0.15)',
+                                 color: uc.live ? '#6ee7b7' : '#c4b5fd',
+                                 border: `1px solid ${uc.live ? '#6ee7b780' : '#a78bfa80'}` }}>
+                    {uc.live ? '● ' + t('usecases.live') : '○ ' + t('usecases.next')}
+                  </span>
+                </div>
+                <div className="text-lg font-bold leading-tight mb-4">{t(uc.titleKey)}</div>
+                <ul className="space-y-2.5">
+                  {Array.isArray(points) && points.map((pt, j) => (
+                    <li key={j} className="flex items-start gap-2 text-sm text-[var(--ink-dim)] leading-relaxed">
+                      <span style={{ color: uc.color }} className="mt-0.5">•</span>
+                      <span>{pt}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function RolesSection({ id }) {
+  const { t } = useT();
+  const blocks = [
+    { titleKey: 'roles.governor.title', pointsKey: 'roles.governor.points', color: '#a78bfa', icon: '⚖️' },
+    { titleKey: 'roles.org.title', pointsKey: 'roles.org.points', color: '#3b82f6', icon: '🏢' },
+    { titleKey: 'roles.policy.title', pointsKey: 'roles.policy.points', color: '#38bdf8', icon: '🔐' },
+  ];
+  return (
+    <section id={id} className="relative border-t border-[var(--line)] py-20">
+      <div className="max-w-[1400px] mx-auto px-6 lg:px-10">
+        <SectionHeader num="07" label={t('nav.roles')} title={t('roles.title')} subtitle={t('roles.subtitle')} />
+
+        <div className="mt-10 grid grid-cols-1 lg:grid-cols-3 gap-5">
+          {blocks.map((b, i) => {
+            const points = t(b.pointsKey);
+            return (
+              <div key={i} className="cap-card reveal"
+                   style={{ '--cap-color': b.color, '--cap-shadow': `${b.color}66`, animationDelay: `${i * 100}ms` }}>
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="text-3xl">{b.icon}</span>
+                  <div className="text-lg font-bold leading-tight">{t(b.titleKey)}</div>
+                </div>
+                <ul className="space-y-2.5">
+                  {Array.isArray(points) && points.map((pt, j) => (
+                    <li key={j} className="flex items-start gap-2 text-sm text-[var(--ink-dim)] leading-relaxed">
+                      <span style={{ color: b.color }} className="mt-0.5">▸</span>
+                      <span>{pt}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ValueSection({ id }) {
+  const { t } = useT();
+  const scenarios = [
+    { titleKey: 'value.s1.title', withoutKey: 'value.s1.without', withKey: 'value.s1.with', icon: '🚨' },
+    { titleKey: 'value.s2.title', withoutKey: 'value.s2.without', withKey: 'value.s2.with', icon: '📋' },
+    { titleKey: 'value.s3.title', withoutKey: 'value.s3.without', withKey: 'value.s3.with', icon: '🤝' },
+  ];
+  return (
+    <section id={id} className="relative border-t border-[var(--line)] py-20">
+      <div className="max-w-[1400px] mx-auto px-6 lg:px-10">
+        <SectionHeader num="08" label={t('nav.value')} title={t('value.title')} subtitle={t('value.subtitle')} />
+
+        <div className="mt-10 space-y-5">
+          {scenarios.map((s, i) => (
+            <div key={i} className="arch-card rounded-xl p-7 reveal"
+                 style={{ '--accent': '#38bdf8', '--accent-glow': 'rgba(56,189,248,0.3)', animationDelay: `${i * 80}ms` }}>
+              <div className="flex items-center gap-3 mb-5">
+                <span className="text-3xl">{s.icon}</span>
+                <div className="text-xl font-bold">{t(s.titleKey)}</div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="p-5 rounded-lg border border-[var(--line)] bg-black/20">
+                  <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#fca5a5] mb-3">✗ {t('value.without')}</div>
+                  <p className="text-sm text-[var(--ink-dim)] leading-relaxed">{t(s.withoutKey)}</p>
+                </div>
+                <div className="p-5 rounded-lg border" style={{ borderColor: '#3b82f6', background: 'linear-gradient(135deg, rgba(13,24,56,0.6), rgba(59,130,246,0.05))' }}>
+                  <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#6ee7b7] mb-3">✓ {t('value.with')}</div>
+                  <p className="text-sm leading-relaxed">{t(s.withKey)}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function LifecycleSection({ id }) {
+  const { t } = useT();
+  const steps = t('lifecycle.steps');
+  const colors = ['#a78bfa', '#a78bfa', '#a78bfa', '#38bdf8', '#3b82f6', '#0EA5E9', '#6ee7b7'];
+
+  return (
+    <section id={id} className="relative border-t border-[var(--line)] py-20">
+      <div className="max-w-[1400px] mx-auto px-6 lg:px-10">
+        <SectionHeader num="L" label="Lifecycle" title={t('lifecycle.title')} subtitle={t('lifecycle.subtitle')} />
+
+        <div className="mt-12 overflow-x-auto scrollbar-thin pb-4">
+          <div className="flex items-stretch gap-3 min-w-max">
+            {Array.isArray(steps) && steps.map((s, i) => (
+              <React.Fragment key={i}>
+                <div className="step-card reveal" style={{ '--step-color': colors[i], animationDelay: `${i * 60}ms` }}>
+                  <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--ink-faint)] mb-1.5">
+                    STEP / {String(i + 1).padStart(2, '0')}
+                  </div>
+                  <div className="text-lg font-bold leading-tight" style={{ color: colors[i] }}>{s.label}</div>
+                  <div className="text-xs text-[var(--ink-dim)] mt-1">{s.sub}</div>
+                </div>
+                {i < steps.length - 1 && (
+                  <div className="step-arrow shrink-0">
+                    <svg width="36" height="20" viewBox="0 0 36 20" style={{ color: '#38bdf8' }}>
+                      <line x1="2" y1="10" x2="28" y2="10" stroke="currentColor" strokeWidth="1.2" className="flow-line" />
+                      <path d="M28 5 L34 10 L28 15" fill="none" stroke="currentColor" strokeWidth="1.2" />
+                    </svg>
+                  </div>
+                )}
+              </React.Fragment>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="rounded-xl p-6 border border-[var(--line)] bg-black/20">
+            <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--ink-faint)] mb-3">
+              {t('lifecycle.traditional.label')}
+            </div>
+            <div className="text-xl font-semibold text-[var(--ink-dim)]">{t('lifecycle.traditional.title')}</div>
+            <div className="mt-3 text-sm text-[var(--ink-faint)] leading-relaxed">{t('lifecycle.traditional.note')}</div>
+          </div>
+          <div className="rounded-xl p-6 border"
+               style={{ borderColor: '#F97316', background: 'linear-gradient(135deg, var(--bg-card), rgba(249,115,22,0.06))' }}>
+            <div className="font-mono text-[10px] uppercase tracking-[0.22em] mb-3" style={{ color: '#F97316' }}>
+              {t('lifecycle.portguard.label')}
+            </div>
+            <div className="text-xl font-semibold">{t('lifecycle.portguard.title')}</div>
+            <div className="mt-3 text-sm text-[var(--ink-dim)] leading-relaxed">{t('lifecycle.portguard.note')}</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ThreeTruthsSection({ id }) {
+  const { t } = useT();
+  const [active, setActive] = useState('port');
+  const p = PERSONAS.find(x => x.id === active);
+  const accent = p.accent === '#003DA5' ? '#3b82f6' : p.accent;
+  const sees = t('truths.' + active + '.sees');
+  const denied = t('truths.' + active + '.denied');
+
+  return (
+    <section id={id} className="relative border-t border-[var(--line)] py-20">
+      <div className="max-w-[1400px] mx-auto px-6 lg:px-10">
+        <SectionHeader num="T" label="Three truths" title={t('truths.title')} subtitle={t('truths.subtitle')} />
+
+        <div className="mt-10 flex flex-wrap border-b border-[var(--line)]">
+          {PERSONAS.map((per) => {
+            const a = per.accent === '#003DA5' ? '#3b82f6' : per.accent;
+            return (
+              <button key={per.id}
+                onClick={() => setActive(per.id)}
+                className={`persona-tab ${active === per.id ? 'active' : ''}`}
+                style={{ '--tab-color': a }}>
+                {per.name}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="mt-10 grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <div className="panel-granted" style={{ '--panel-color': accent }}>
+            <div className="font-mono text-[10px] uppercase tracking-[0.22em] flex items-center gap-2 mb-5" style={{ color: accent }}>
+              <span className="w-1.5 h-1.5 rounded-full" style={{ background: accent, boxShadow: `0 0 8px ${accent}` }} />
+              {t('truths.granted')}
+            </div>
+            <div className="text-2xl font-bold mb-5">{p.name} {t('truths.cansee')}</div>
+            <ul className="space-y-3">
+              {Array.isArray(sees) && sees.map((s, i) => (
+                <li key={i} className="flex items-start gap-3 text-base reveal" style={{ animationDelay: `${i * 50}ms` }}>
+                  <span className="font-mono text-sm mt-0.5 shrink-0" style={{ color: accent }}>✓</span>
+                  <span>{s}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="panel-denied">
+            <div className="font-mono text-[10px] uppercase tracking-[0.22em] flex items-center gap-2 mb-5 text-[var(--ink-faint)]">
+              <span>⊘</span> {t('truths.denied')}
+            </div>
+            <div className="text-2xl font-bold mb-5 text-[var(--ink-dim)]">{t('truths.excluded')}</div>
+            <ul className="space-y-3">
+              {Array.isArray(denied) && denied.map((s, i) => (
+                <li key={i} className="flex items-start gap-3 text-base reveal" style={{ animationDelay: `${i * 50}ms` }}>
+                  <span className="font-mono text-sm mt-0.5 text-[var(--ink-faint)] shrink-0">⊘</span>
+                  <span className="denied-item">{s}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function AIAgnosticSection({ id }) {
+  const { t } = useT();
+
+  const vendors = {
+    current: [
+      { name: 'Anthropic Claude', color: '#fb923c' },
+      { name: 'Azure OpenAI · GPT-4o', color: '#38bdf8' },
+    ],
+    drop: [
+      { name: 'Mistral EU', color: '#f97316' },
+      { name: 'Llama 3.x', color: '#a78bfa' },
+      { name: 'DeepSeek', color: '#6ee7b7' },
+      { name: 'Gemini', color: '#fcd34d' },
+    ],
+    future: [
+      { name: 'Your own SLM', color: '#94a3c4' },
+      { name: 'On-prem fine-tune', color: '#94a3c4' },
+      { name: 'Sovereign / EU-hosted', color: '#94a3c4' },
+    ],
+  };
+
+  const blocks = [
+    { titleKey: 'ai.agnostic.swap.title', descKey: 'ai.agnostic.swap.desc', color: '#38bdf8', icon: '🔌' },
+    { titleKey: 'ai.agnostic.mcp.title', descKey: 'ai.agnostic.mcp.desc', color: '#a78bfa', icon: '🧩' },
+    { titleKey: 'ai.agnostic.policy.title', descKey: 'ai.agnostic.policy.desc', color: '#F97316', icon: '🛡️' },
+  ];
+
+  return (
+    <section id={id} className="relative border-t border-[var(--line)] py-20">
+      <div className="max-w-[1400px] mx-auto px-6 lg:px-10">
+        <SectionHeader num="AI" label="Agnostic" title={t('ai.agnostic.title')} subtitle={t('ai.agnostic.subtitle')} />
+
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-5">
+          {blocks.map((b, i) => (
+            <div key={i} className="cap-card reveal"
+                 style={{ '--cap-color': b.color, '--cap-shadow': `${b.color}66`, animationDelay: `${i * 80}ms` }}>
+              <div className="flex items-center gap-3 mb-4">
+                <span className="text-3xl">{b.icon}</span>
+                <div className="text-lg font-bold leading-tight">{t(b.titleKey)}</div>
+              </div>
+              <p className="text-sm text-[var(--ink-dim)] leading-relaxed">{t(b.descKey)}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-[#6ee7b7] mb-4 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#6ee7b7]" style={{ boxShadow: '0 0 8px #6ee7b7' }} />
+                {t('ai.vendors.current')}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {vendors.current.map((v, i) => (
+                  <span key={i} className="vendor-chip" style={{ '--chip-color': v.color }}>
+                    <span className="vendor-chip-dot" />
+                    {v.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div>
+              <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-[#7dd3fc] mb-4 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#7dd3fc]" style={{ boxShadow: '0 0 8px #7dd3fc' }} />
+                {t('ai.vendors.drop')}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {vendors.drop.map((v, i) => (
+                  <span key={i} className="vendor-chip" style={{ '--chip-color': v.color }}>
+                    <span className="vendor-chip-dot" />
+                    {v.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div>
+              <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--ink-dim)] mb-4 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-[var(--ink-dim)]" />
+                {t('ai.vendors.future')}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {vendors.future.map((v, i) => (
+                  <span key={i} className="vendor-chip" style={{ '--chip-color': v.color }}>
+                    <span className="vendor-chip-dot" />
+                    {v.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-10 pull-quote">
+          "{t('ai.agnostic.note')}"
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function StatusSection() {
+  const { t } = useT();
+  const live = t('status.live');
+  const pending = t('status.pending');
+  return (
+    <section className="relative border-t border-[var(--line)] py-20">
+      <div className="max-w-[1400px] mx-auto px-6 lg:px-10">
+        <SectionHeader num="09" label="Status" title={t('status.title')} />
+
+        <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="cap-card" style={{ '--cap-color': '#6ee7b7' }}>
+            <div className="flex items-center gap-2 mb-4">
+              <span className="w-2 h-2 rounded-full bg-[#6ee7b7]" style={{ boxShadow: '0 0 10px #6ee7b7' }} />
+              <div className="font-mono text-xs uppercase tracking-[0.18em] text-[#6ee7b7]">{t('status.live.title')}</div>
+            </div>
+            <ul className="space-y-2">
+              {Array.isArray(live) && live.map((pt, j) => (
+                <li key={j} className="flex items-start gap-2 text-sm text-[var(--ink-dim)] leading-relaxed">
+                  <span className="text-[#6ee7b7] mt-0.5">✓</span><span>{pt}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="cap-card" style={{ '--cap-color': '#fcd34d' }}>
+            <div className="flex items-center gap-2 mb-4">
+              <span className="w-2 h-2 rounded-full bg-[#fcd34d]" />
+              <div className="font-mono text-xs uppercase tracking-[0.18em] text-[#fcd34d]">{t('status.pending.title')}</div>
+            </div>
+            <ul className="space-y-2">
+              {Array.isArray(pending) && pending.map((pt, j) => (
+                <li key={j} className="flex items-start gap-2 text-sm text-[var(--ink-dim)] leading-relaxed">
+                  <span className="text-[#fcd34d] mt-0.5">○</span><span>{pt}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Closing() {
+  const { t } = useT();
+  return (
+    <section className="relative border-t border-[var(--line)] py-24">
+      <div className="max-w-[900px] mx-auto px-6 lg:px-10 text-center">
+        <div className="font-mono text-xs uppercase tracking-[0.25em] text-[#7dd3fc] mb-4">// CLOSING</div>
+        <h2 className="text-4xl md:text-5xl font-bold leading-tight mb-6">{t('closing.title')}</h2>
+        <p className="text-lg text-[var(--ink-dim)] leading-relaxed">{t('closing.text')}</p>
+        <div className="mt-10 pull-quote inline-block text-left max-w-xl">
+          "{t('hero.principle')}"
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Footer({ onChangeMode }) {
+  const { t } = useT();
+  return (
+    <footer className="border-t border-[var(--line)] py-10">
+      <div className="max-w-[1400px] mx-auto px-6 lg:px-10 flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="logo-pg" style={{ width: 28, height: 28, fontSize: 11 }}>PG</div>
+          <div>
+            <div className="font-bold text-sm">PortGuard</div>
+            <div className="text-xs text-[var(--ink-faint)]">{t('app.tagline')}</div>
+          </div>
+        </div>
+        <div className="text-xs text-[var(--ink-faint)] text-center">
+          {t('partners.footer')}
+        </div>
+        <div className="flex gap-2">
+          <button onClick={onChangeMode} className="btn-ghost px-3 py-2 rounded-lg text-xs font-mono uppercase tracking-wider">
+            {t('common.changemode')}
+          </button>
+          <button onClick={downloadHTML} className="btn-primary px-4 py-2 rounded-lg text-xs font-semibold">
+            ↓ Download HTML
+          </button>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+// =============== APP ===============
+function App() {
+  const [lang, setLang] = useState('en');
+  const [mode, setMode] = useState(null); // null = picker, 'promo' | 'demo' | 'quick'
+
+  const t = (key) => {
+    const val = I18N[lang][key];
+    return val !== undefined ? val : key;
+  };
+
+  const handleNav = (id) => {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const handleChangeMode = () => {
+    setMode(null);
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
+  };
+
+  return (
+    <LangContext.Provider value={{ lang, t }}>
+      {mode === null ? (
+        <>
+          <header className="border-b border-[var(--line)] bg-[var(--bg)]/85 backdrop-blur-md sticky top-0 z-30">
+            <div className="max-w-[1400px] mx-auto px-6 lg:px-10 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="logo-pg">PG</div>
+                <div>
+                  <div className="font-bold text-lg leading-none tracking-tight">PortGuard</div>
+                  <div className="text-xs text-[var(--ink-dim)] mt-1">{t('app.tagline')}</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-1 px-3 py-1.5 rounded-md border border-[var(--line-bright)] text-xs font-mono">
+                <button onClick={() => setLang('en')} className={`px-1 ${lang === 'en' ? 'text-white' : 'text-[var(--ink-faint)]'}`}>EN</button>
+                <span className="text-[var(--ink-faint)]">|</span>
+                <button onClick={() => setLang('nl')} className={`px-1 ${lang === 'nl' ? 'text-white' : 'text-[var(--ink-faint)]'}`}>NL</button>
+              </div>
+            </div>
+          </header>
+          <ModeSelector onSelect={setMode} />
+        </>
+      ) : (
+        <>
+          <Header mode={mode} onChangeMode={handleChangeMode} lang={lang} setLang={setLang} onNav={handleNav} />
+          <Hero />
+          {/* PROMO MODE */}
+          {mode === 'promo' && (
+            <>
+              <Capabilities id="capabilities" />
+              <DemoSection id="demo" />
+              <ThreeTruthsSection id="truths" />
+              <ValueSection id="value" />
+            </>
+          )}
+          {/* QUICK MODE */}
+          {mode === 'quick' && (
+            <>
+              <Capabilities id="capabilities" />
+              <DemoSection id="demo" quick />
+              <ThreeTruthsSection id="truths" />
+              <ArchitectureSection id="architecture" />
+              <AIAgnosticSection id="ai-agnostic" />
+            </>
+          )}
+          {/* FULL DEMO MODE */}
+          {mode === 'demo' && (
+            <>
+              <Capabilities id="capabilities" />
+              <DemoSection id="demo" />
+              <PersonasSection id="personas" />
+              <ThreeTruthsSection id="truths" />
+              <IdentitySection id="identity" />
+              <LifecycleSection id="lifecycle" />
+              <ArchitectureSection id="architecture" />
+              <AIAgnosticSection id="ai-agnostic" />
+              <UseCasesSection id="usecases" />
+              <RolesSection id="roles" />
+              <ValueSection id="value" />
+              <StatusSection />
+            </>
+          )}
+          <Closing />
+          <Footer onChangeMode={handleChangeMode} />
+        </>
+      )}
+    </LangContext.Provider>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
